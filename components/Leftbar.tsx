@@ -43,8 +43,8 @@ const Leftbar = () => {
           alt="fourdots"
         />
       </div>
-      <div className="  h-[45%] rounded-lg">
-        <div className="w-[120px] flex items-center justify-center gap-2 bg-gradient-to-r from-gray-300 to-purple-100 shadow-md bg-[#8D8C8C] px-2 border-black rounded-lg py-2">
+      <div className="flex flex-col gap-2 h-[45%] rounded-lg">
+        <div className="w-[120px] flex items-center justify-center gap-2 bg-gradient-to-r from-gray-300 to-purple-100 shadow-md bg-[#8D8C8C] px-2 border-black rounded-lg py-2 mt-2">
           <img src="/plus.png" alt="plus" className="w-[13px] h-[13px]" />
           <h2 className="font-semibold">New Chat</h2>
         </div>
@@ -57,8 +57,8 @@ const Leftbar = () => {
           <li>2). What is waste management?</li>
           <li>3). How can we contribute in supply chain management.</li>
         </ol>
-        <div className="w-full mt-6 h-[1px] opacity-55 border-[0.2px] border-black"></div>
       </div>
+      <div className="w-full h-[1px] opacity-55 border-[0.2px] border-black"></div>
       <div>
         {/* Links and Info */}
         <div className="flex flex-col gap-3 relative top-[8px]">

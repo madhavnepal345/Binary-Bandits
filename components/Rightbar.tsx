@@ -11,7 +11,14 @@ const Rightbar = () => {
     <div className="bg-gradient-to-r from-purple-200 to-gray-400 bg-[#B0A8A8] shadow-lg flex flex-col items-center gap-4 w-full rounded-lg h-[93%] px-4 py-3">
       {/* head  */}
       <div className="flex justify-between w-full text-lg">
-        <h1 className="font-semibold text-xl justify-start">Brainy Bot</h1>
+        <div className="flex items-center justify-center font-semibold text-xl gap-2">
+          <img
+            src="/brainy.png"
+            className="w-7 h-7 rounded-full "
+            alt="brainy"
+          />
+          <h1>Brainy Bot</h1>
+        </div>
         {/* <img className="bg-cover w-6 h-5" src="/help.png" alt="help" /> */}
         <div className="flex gap-2 items-center justify-center">
           <button className="bg-gradient-to-r from-gray-300 to-purple-100 shadow-md bg-[#8D8C8C] text-base font-semibold border-black px-5 rounded-lg py-[6px]">
@@ -41,7 +48,7 @@ const Rightbar = () => {
       </div>
 
       {/* Prompt Box  */}
-      <div className="bg-gradient-to-r from-purple-200 to-gray-200 shadow-md flex items-center justify-between w-[90%] bg-[#8D8C8C] rounded-lg py-4 px-3">
+      <div className="bg-gradient-to-r from-purple-200 to-gray-200 shadow-md flex items-center justify-between w-[90%] bg-[#8D8C8C] rounded-lg py-4 px-3 overflow-hidden">
         <div className="flex items-center gap-3 justify-center">
           <img className="cursor-pointer" src="/mic.png" alt="microphone" />
           <input
