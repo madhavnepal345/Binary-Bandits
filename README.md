@@ -35,11 +35,23 @@
 ### DataBase
 - MongoDB
 ## Installation
-- Clone the repo using ```git clone``` command
-- Go to backend folder using ```cd backend``` command
-- run ```pip install requirements.txt``` to install project dependency
-- Go to frontend folder using ```cd ../frontend``` command
-- Run ```npm install``` to install the required font end packages and modules.
+- Clone this repo using `git clone` command
+- Go to backend folder using `cd backend` command
+- Run `pip install requirements.txt` to install project dependency
+- Go to frontend folder using `cd ../frontend` command
+- Run `npm install` to install the required font end packages and modules.
 - Run `npm run dev` to run the project on [local host](http://localhost:3000/)
 ## Conclusion
 - Brainy Bot aims to revolutionize the educational experience by integrating AI into everyday learning and teaching activities, making education more accessible, personalized, and efficient.
+
+## Binary Bandits Team Member ✨
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="25%"><img src="https://avatars.githubusercontent.com/u/164827904?v=4" width="120px"/><br /><sub><b>Madhav Nepal</b></sub></a><br /><p>Team Leader</p></td>
+      <td align="center" valign="top" width="25%"><img src="https://avatars.githubusercontent.com/u/145834199?v=4" width="120px"/><br /><sub><b>Ravi Kumar Shah</b></sub></a><br /><p>Team Member</p></td>
+      <td align="center" valign="top" width="25%"><img <img src="https://avatars.githubusercontent.com/u/130172491?v=4" width="120px"/><br /><sub><b>Hira Prasad Niroula</b></sub></a><br /><p>Team Member</p></td>
+  <td align="center" valign="top" width="25%"><img 
+  src="https://avatars.githubusercontent.com/u/159796540?v=4" width="120px"/><br /><sub><b>Rishav Karki</b></sub></a><br /><p>Team Member</p></td>
+</tbody>
+</table>
