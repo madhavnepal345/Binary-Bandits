@@ -12,3 +12,4 @@ MONGO_URI = (f"mongodb+srv://{encoded_username}:{encoded_password}@cluster0.jbm3
 
 DB_NAME = "hackathone"
 COLLECTION_NAME = "student"
+USER_QUESTIONS_COLLECTION="asked_questions"

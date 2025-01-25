@@ -1,69 +1,61 @@
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+import openai
 from pymongo import MongoClient
-from config.config import COLLECTION_NAME, DB_NAME, MONGO_URI
-from pdf_extraction import extract_text_from_pdf
-from google.cloud import aiplatform 
+import uvicorn
+from config.config import MONGO_URI, DB_NAME, COLLECTION_NAME, USER_QUESTIONS_COLLECTION
+from pdf_extractor import extract_text_from_pdf,load_pdf_content_to_db
 
-# Connect to MongoDB
+app = FastAPI()
+
+# Set up OpenAI API key
+openai.api_key = "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"
+
+# Set up MongoDB client
 client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-collection = db[COLLECTION_NAME]
+db = client[DB_NAME]  # Database name
+user_questions_collection = db[USER_QUESTIONS_COLLECTION]  # Collection for user questions
 
-# Load PDF content once at the sta# Replace with your PDF file path
-
-def get_answer_from_db(question):
-    # Search for the answer in the MongoDB collection
-    query = {"user_question": {"$regex": question, "$options": "i"}}  # Case-insensitive search
-    result = collection.find_one(query)
-    if result:
-        return result["user_answer"]
-    return None  # Return None if no answer is found
-
-def chat_with_gemini(question):
-    # Initialize the AI Platform
-    PROJECT_ID = 'midyear-arcade-448818-s8'  # Replace with your project ID
-    LOCATION = "asia-south1"  # Replace with your location
-    MODEL_NAME = "text-bison"  # Replace with your model name
-
-    aiplatform.init(project=PROJECT_ID, location=LOCATION)
-    endpoint = aiplatform.Endpoint(MODEL_NAME)
-
-    # Call the Gemini API
-    response = endpoint.predict(instance=[{"content": question}])
-    return response.predictions[0]['content']  # Adjust based on the actual response structure
-
-def save_user_input(question, answer, user_info):
-    document = {
-        "user_question": question,
-        "user_answer": answer,
-        "user_info": user_info
-    }
+@app.get("/chat")
+async def chat(request: Request):
     try:
-        collection.insert_one(document)
-        print("Data saved successfully")
+        data = await request.json()
+        user_input = data.get("message", "")
+        user_name = data.get("name", "Anonymous")  # Assuming you want to capture the user's name
+
+        if not user_input:
+            raise HTTPException(status_code=400, detail="Please provide a message.")
+
+        # Here you would typically retrieve relevant content from your database
+        
+        relevant_content = ""  # Placeholder for relevant content retrieval
+
+        # Store user input and relevant content in another collection
+        user_question_data = {
+            "user_name": user_name,
+            "user_input": user_input,
+            "relevant_content": relevant_content
+        }
+        user_questions_collection.insert_one(user_question_data)
+
+        # Combine the relevant content with GPT's response
+        messages = [
+            {"role": "system", "content": "You are an AI-powered learning assistant. Help users with their educational questions."}
+        ]
+        if relevant_content:
+            messages.append({"role": "assistant", "content": f"Relevant information from your materials:\n{relevant_content}"})
+        messages.append({"role": "user", "content": user_input})
+
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages
+        )
+
+        reply = response['choices'][0]['message']['content']
+        return JSONResponse(content={"response": reply})
+
     except Exception as e:
-        print(f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    print("Welcome to the Q&A system!")
-    
-    while True:
-        question = input("Please enter your question (or type 'exit' to quit): ")
-        if question.lower() == 'exit':
-            print("Exiting the program.")
-            break
-        
-        # First, try to get an answer from the database
-        answer = get_answer_from_db(question)
-        
-        # If no answer is found in the database, use the Gemini API
-        if answer is None:
-            print("No answer found in the database. Asking Gemini API...")
-            answer = chat_with_gemini(question)
-        
-        username = input("Please enter your username: ")
-        user_info = {"username": username}
-
-        # Save the user input and the answer
-        save_user_input(question, answer, user_info)
-
-        print("Answer:", answer)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
