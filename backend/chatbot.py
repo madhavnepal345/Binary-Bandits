@@ -2,12 +2,10 @@ import openai
 import PyPDF2
 from pymongo import MongoClient, errors
 from config.config import MONGO_URI, DB_NAME, COLLECTION_NAME, USER_QUESTIONS_COLLECTION
-# Set your OpenAI API key
 # openai.api_key = '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'  # Replace with your OpenAI API key
 
 
 
-# Function to connect to MongoDB
 def connect_to_mongo():
     try:
         client = MongoClient(MONGO_URI)
@@ -19,7 +17,6 @@ def connect_to_mongo():
         print(f"Could not connect to MongoDB: {e}")
         return None
 
-# Function to extract text from a PDF file
 def extract_text_from_pdf(pdf_path):
     text = ""
     try:
@@ -36,7 +33,6 @@ def extract_text_from_pdf(pdf_path):
         return None
     return text
 
-# Function to store PDF content in MongoDB
 def store_pdf_content(collection, pdf_text):
     if collection is not None:
         try:
@@ -45,7 +41,6 @@ def store_pdf_content(collection, pdf_text):
         except errors.PyMongoError as e:
             print(f"Error storing PDF content in MongoDB: {e}")
 
-# Function to retrieve PDF content from MongoDB
 def retrieve_pdf_content(collection):
     if collection is not None:
         try:
@@ -55,7 +50,6 @@ def retrieve_pdf_content(collection):
             print(f"Error retrieving PDF content from MongoDB: {e}")
             return None
 
-# Function to chat with OpenAI
 def chat_with_gpt(user_input, context):
     try:
         response = openai.ChatCompletion.create(
@@ -70,18 +64,14 @@ def chat_with_gpt(user_input, context):
         print(f"Error communicating with OpenAI: {e}")
         return "I'm sorry, I couldn't process your request at the moment."
 
-# Load your PDF content and store it in MongoDB
-pdf_path = "D:\Hacakthon\english.pdf"  # Replace with the path to your PDF file
+pdf_path = "D:\Hacakthon\english.pdf"  
 pdf_text = extract_text_from_pdf(pdf_path)
 
-# Connect to MongoDB
 collection = connect_to_mongo()
 
-# Store PDF content if extraction was successful
 if pdf_text:
     store_pdf_content(collection, pdf_text)
 
-# Example usage
 if __name__ == "__main__":
     print("Welcome to the AI-powered learning assistant chatbot!")
     print("Type 'exit' or 'quit' to end the chat.")
@@ -92,12 +82,11 @@ if __name__ == "__main__":
             print("Goodbye!")
             break
         
-        # Retrieve PDF content from MongoDB
-        # Retrieve data from MongoDB
+        
         documents = collection.find()
         paragraphs = []
         for doc in documents:
-            if 'content' in doc:  # Check if 'content' key exists
-                paragraphs.append(doc['content'])  # Append the content if it exists
+            if 'content' in doc:  
+                paragraphs.append(doc['content'])  
             else:
-                print(f"Document missing 'content' field: {doc}")  # Log the document for debugging
+                print(f"Document missing 'content' field: {doc}")  
