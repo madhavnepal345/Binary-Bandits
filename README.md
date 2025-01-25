@@ -24,9 +24,9 @@
 
 ## Tech Stack
 ### FrontEnd 
-- Tailwind Css
+- Tailwind CSS
 - TypeScript
-- NextJs
+- Next JS
 ### Backend
 - Python
 - Fast Api
@@ -35,7 +35,11 @@
 ### DataBase
 - MongoDB
 ## Installation
-- Clone the repo using `git clone` command
-
+- Clone the repo using ```git clone``` command
+- Go to backend folder using ```cd backend``` command
+- run ```pip install requirements.txt``` to install project dependency
+- Go to frontend folder using ```cd ../frontend``` command
+- Run ```npm install``` to install the required font end packages and modules.
+- Run `npm run dev` to run the project on [local host](http://localhost:3000/)
 ## Conclusion
-- Brainy Bot aims to revolutionize the educational experience by integrating AI into everyday learning and teaching activities, making education more accessible, personalized, and efficient.
+- Brainy Bot aims to revolutionize the educational experience by integrating AI into everyday learning and teaching activities, making education more accessible, personalized, and efficient.
