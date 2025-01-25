@@ -41,4 +41,4 @@ def load_pdf_content_to_db(pdf_path, json_path):
             collection.insert_one(data)  # Insert the content into the collection
 
 # Load PDF content at startup
-load_pdf_content_to_db("D:\Hacakthon\english.pdf", "D:\Hacakthon\pdf_content.json")  # Replace with the actual paths
+load_pdf_content_to_db("D:\Hacakthon\english.pdf", "D:\Hacakthon\pdf_content.json")  # Replace with the actual path

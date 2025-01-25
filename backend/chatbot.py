@@ -1,104 +1,103 @@
-import os
-import numpy as np
-import nltk
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import RegexpTokenizer
-from pymongo import MongoClient
-import tensorflow as tf
-from config import MONGO_URI, DB_NAME, COLLECTION_NAME
+import openai
+import PyPDF2
+from pymongo import MongoClient, errors
+from config.config import MONGO_URI, DB_NAME, COLLECTION_NAME, USER_QUESTIONS_COLLECTION
+# Set your OpenAI API key
+openai.api_key = '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'  # Replace with your OpenAI API key
+
+
+
+# Function to connect to MongoDB
+def connect_to_mongo():
+    try:
+        client = MongoClient(MONGO_URI)
+        db = client[DB_NAME]
+        collection = db[COLLECTION_NAME]
+        print("Connected to MongoDB successfully.")
+        return collection
+    except errors.ConnectionError as e:
+        print(f"Could not connect to MongoDB: {e}")
+        return None
+
+# Function to extract text from a PDF file
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    try:
+        with open(pdf_path, "rb") as file:
+            pdf_reader = PyPDF2.PdfReader(file)
+            for page in pdf_reader.pages:
+                text += page.extract_text() + "\n"
+        print("PDF text extracted successfully.")
+    except FileNotFoundError:
+        print(f"Error: The file {pdf_path} was not found.")
+        return None
+    except PyPDF2.PdfReaderError as e:
+        print(f"Error reading PDF file: {e}")
+        return None
+    return text
+
+# Function to store PDF content in MongoDB
+def store_pdf_content(collection, pdf_text):
+    if collection is not None:
+        try:
+            collection.insert_one({"content": pdf_text})
+            print("PDF content stored in MongoDB successfully.")
+        except errors.PyMongoError as e:
+            print(f"Error storing PDF content in MongoDB: {e}")
+
+# Function to retrieve PDF content from MongoDB
+def retrieve_pdf_content(collection):
+    if collection is not None:
+        try:
+            document = collection.find_one()
+            return document['content'] if document else None
+        except errors.PyMongoError as e:
+            print(f"Error retrieving PDF content from MongoDB: {e}")
+            return None
+
+# Function to chat with OpenAI
+def chat_with_gpt(user_input, context):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an AI-powered learning assistant."},
+                {"role": "user", "content": f"{user_input}\n\nContext:\n{context}"}
+            ]
+        )
+        return response['choices'][0]['message']['content']
+    except Exception as e:
+        print(f"Error communicating with OpenAI: {e}")
+        return "I'm sorry, I couldn't process your request at the moment."
+
+# Load your PDF content and store it in MongoDB
+pdf_path = "D:\Hacakthon\english.pdf"  # Replace with the path to your PDF file
+pdf_text = extract_text_from_pdf(pdf_path)
 
 # Connect to MongoDB
-client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-collection = db[COLLECTION_NAME]
+collection = connect_to_mongo()
 
-# Initialize NLTK components
-nltk.download('punkt')
-nltk.download('wordnet')
-lemmatizer = WordNetLemmatizer()
-tokenizer = RegexpTokenizer("[\w']+")
-
-# Retrieve data from MongoDB
-documents = collection.find()
-paragraphs = []
-for doc in documents:
-    paragraphs.append(doc['content'])  # Assuming each document has a 'content' field
-
-# Preprocess the data
-words = []
-classes = []
-documents = []
-
-# Create a simple class for each paragraph
-for i, paragraph in enumerate(paragraphs):
-    tokens = tokenizer.tokenize(paragraph)
-    words.extend(tokens)
-    documents.append((tokens, f'class_{i}'))  # Assign a class label based on index
-    classes.append(f'class_{i}')
-
-# Stem and lower the words
-words = [lemmatizer.lemmatize(w.lower()) for w in words]
-words = sorted(set(words))
-classes = sorted(set(classes))
-
-# Create training data
-training_data = []
-output_empty = [0] * len(classes)
-
-for doc in documents:
-    bag = []
-    pattern_words = doc[0]
-    pattern_words = [lemmatizer.lemmatize(word.lower()) for word in pattern_words]
-    
-    for w in words:
-        bag.append(1) if w in pattern_words else bag.append(0)
-    
-    output_row = list(output_empty)
-    output_row[classes.index(doc[1])] = 1
-    training_data.append([bag, output_row])
-
-# Shuffle the training data
-np.random.shuffle(training_data)
-training_data = np.array(training_data)
-
-# Split into input and output
-train_x = list(training_data[:, 0])
-train_y = list(training_data[:, 1])
-
-# Build the model
-model = tf.keras.Sequential([
-    tf.keras.layers.Dense(128, input_shape=(len(train_x[0]),), activation='relu'),
-    tf.keras.layers.Dropout(0.5),
-    tf.keras.layers.Dense(len(train_y[0]), activation='softmax')
-])
-
-# Compile the model
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-# Train the model
-model.fit(np.array(train_x), np.array(train_y), epochs=200, batch_size=5, verbose=1)
-
-# Save the model
-model.save('chatbot_model.h5')
-
-# Function to predict class
-def predict_class(text):
-    # Preprocess the input text
-    bag = [0] * len(words)
-    tokens = tokenizer.tokenize(text)
-    tokens = [lemmatizer.lemmatize(word.lower()) for word in tokens]
-    
-    for w in tokens:
-        for i, word in enumerate(words):
-            if word == w:
-                bag[i] = 1
-
-    # Predict the class
-    prediction = model.predict(np.array([bag]))[0]
-    return classes[np.argmax(prediction)]
+# Store PDF content if extraction was successful
+if pdf_text:
+    store_pdf_content(collection, pdf_text)
 
 # Example usage
 if __name__ == "__main__":
-    user_input = input("You: ")
-    response_class = predict_class(user_input)
-    print(f"Bot: {response_class}")
+    print("Welcome to the AI-powered learning assistant chatbot!")
+    print("Type 'exit' or 'quit' to end the chat.")
+    
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+        
+        # Retrieve PDF content from MongoDB
+        # Retrieve data from MongoDB
+        documents = collection.find()
+        paragraphs = []
+        for doc in documents:
+            if 'content' in doc:  # Check if 'content' key exists
+                paragraphs.append(doc['content'])  # Append the content if it exists
+            else:
+                print(f"Document missing 'content' field: {doc}")  # Log the document for debugging
