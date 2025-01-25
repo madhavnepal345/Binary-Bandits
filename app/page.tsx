@@ -9,9 +9,12 @@ export default function Home() {
     { name: "FAQ" },
   ];
   return (
-    <div className="mx-4 flex gap-4 justify-between items-center h-[100vh]">
+    <div
+      id="home"
+      className="bg-gradient-to-r from-gray-500 to-blue-100 px-4 flex gap-4 justify-between items-center h-[100vh]"
+    >
       {/* left Sidebar  */}
-      <Leftbar/>
+      <Leftbar />
 
       {/* Right bar  */}
       <Rightbar />
