@@ -1,21 +1,22 @@
-import openai
 import PyPDF2
 from pymongo import MongoClient, errors
+from transformers import pipeline
 from config.config import MONGO_URI, DB_NAME, COLLECTION_NAME, USER_QUESTIONS_COLLECTION
-# openai.api_key = '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'  # Replace with your OpenAI API key
 
-
+# Initialize the Hugging Face summarization pipeline
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
 
 def connect_to_mongo():
     try:
         client = MongoClient(MONGO_URI)
         db = client[DB_NAME]
         collection = db[COLLECTION_NAME]
+        summary_collection = db[USER_QUESTIONS_COLLECTION]
         print("Connected to MongoDB successfully.")
-        return collection
+        return collection, summary_collection
     except errors.ConnectionError as e:
         print(f"Could not connect to MongoDB: {e}")
-        return None
+        return None, None
 
 def extract_text_from_pdf(pdf_path):
     text = ""
@@ -41,33 +42,18 @@ def store_pdf_content(collection, pdf_text):
         except errors.PyMongoError as e:
             print(f"Error storing PDF content in MongoDB: {e}")
 
-def retrieve_pdf_content(collection):
-    if collection is not None:
-        try:
-            document = collection.find_one()
-            return document['content'] if document else None
-        except errors.PyMongoError as e:
-            print(f"Error retrieving PDF content from MongoDB: {e}")
-            return None
-
-def chat_with_gpt(user_input, context):
+def summarize_text(text):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are an AI-powered learning assistant."},
-                {"role": "user", "content": f"{user_input}\n\nContext:\n{context}"}
-            ]
-        )
-        return response['choices'][0]['message']['content']
+        summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
+        return summary[0]['summary_text']
     except Exception as e:
-        print(f"Error communicating with OpenAI: {e}")
-        return "I'm sorry, I couldn't process your request at the moment."
+        print(f"Error summarizing text: {e}")
+        return "I'm sorry, I couldn't summarize the text at the moment."
 
-pdf_path = "D:\Hacakthon\english.pdf"  
+pdf_path = r"D:\Hacakthon\english.pdf"  
 pdf_text = extract_text_from_pdf(pdf_path)
 
-collection = connect_to_mongo()
+collection, summary_collection = connect_to_mongo()
 
 if pdf_text:
     store_pdf_content(collection, pdf_text)
@@ -82,7 +68,7 @@ if __name__ == "__main__":
             print("Goodbye!")
             break
         
-        
+        # Retrieve all content from the PDF
         documents = collection.find()
         paragraphs = []
         for doc in documents:
@@ -90,3 +76,26 @@ if __name__ == "__main__":
                 paragraphs.append(doc['content'])  
             else:
                 print(f"Document missing 'content' field: {doc}")  
+
+        # Check if user input matches any content
+        matched_content = []
+        for para in paragraphs:
+            if user_input.lower() in para.lower():  # Case insensitive matching
+                matched_content.append(para)
+
+        if matched_content:
+            # Join matched content for summarization
+            relevant_content = " ".join(matched_content)
+            summary = summarize_text(relevant_content)
+            
+            # Store the summary in the new collection
+            if summary_collection is not None:
+                try:
+                    summary_collection.insert_one({"user_input": user_input, "summary": summary})
+                    print("Summary stored in MongoDB successfully.")
+                except errors.PyMongoError as e:
+                    print(f"Error storing summary in MongoDB: {e}")
+            else:
+                print("Summary collection is not available.")
+        else:
+            print("No relevant content found for your query.")
