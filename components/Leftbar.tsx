@@ -30,7 +30,7 @@ const Leftbar = () => {
     },
   ];
   return (
-    <div className="bg-gradient-to-r from-gray-400 to-purple-200 flex flex-col justify-between shadow-lg bg-[#B0A8A8] h-[93%] w-[350px] rounded-lg px-5 py-2">
+    <div className="bg-gradient-to-r from-gray-400 to-purple-200 flex flex-col justify-between shadow-lg bg-[#B0A8A8] h-[93%] w-[400px] rounded-lg px-5 py-2">
       <div className="flex gap-5 items-center justify-between">
         <img className="cursor-pointer" src="/sidebar.png" alt="sidebar" />
         <h1 className="cursor-pointer text-center font-semibold text-xl drop-shadow-md">
